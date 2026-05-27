@@ -10,8 +10,8 @@
  * @returns {Promise<void>}
  */
 function randomDelay(min, max) {
-  const minDelay = min ?? parseInt(process.env.SCRAPE_DELAY_MIN, 10) || 2000;
-  const maxDelay = max ?? parseInt(process.env.SCRAPE_DELAY_MAX, 10) || 8000;
+  const minDelay = (min != null ? min : parseInt(process.env.SCRAPE_DELAY_MIN, 10) || 2000);
+  const maxDelay = (max != null ? max : parseInt(process.env.SCRAPE_DELAY_MAX, 10) || 8000);
   const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
   return new Promise((resolve) => setTimeout(resolve, delay));
 }

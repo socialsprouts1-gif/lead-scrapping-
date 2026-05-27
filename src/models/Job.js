@@ -54,6 +54,7 @@ const jobSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    suppressReservedKeysWarning: true,
   }
 );
 

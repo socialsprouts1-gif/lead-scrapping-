@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lead Scraper Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <i class="fas fa-search-location"></i>
+      <span>Lead Scraper</span>
+    </div>
+    <div class="navbar-links">
+      <a href="#scraper" class="nav-link active" data-section="scraper">
+        <i class="fas fa-robot"></i> Scraper
+      </a>
+      <a href="#leads" class="nav-link" data-section="leads">
+        <i class="fas fa-users"></i> Leads
+      </a>
+      <a href="#jobs" class="nav-link" data-section="jobs">
+        <i class="fas fa-tasks"></i> Jobs
+      </a>
+    </div>
+    <div class="navbar-stats">
+      <span class="badge" id="totalLeadsBadge">
+        <i class="fas fa-database"></i>
+        <span id="totalLeadsCount">0</span> leads
+      </span>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- Scraper Section -->
+    <section id="section-scraper" class="section active">
+      <div class="hero-card">
+        <div class="hero-header">
+          <h1><i class="fas fa-satellite-dish"></i> Lead Scraper</h1>
+          <p>Automatically find business leads from multiple sources. Enter a profession and location to get started.</p>
+        </div>
+
+        <form id="scrapeForm" class="scrape-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="profession">
+                <i class="fas fa-briefcase"></i> Profession / Business Type
+              </label>
+              <input
+                type="text"
+                id="profession"
+                name="profession"
+                placeholder="e.g. Plumber, Electrician, Dentist..."
+                required
+                autocomplete="off"
+              />
+            </div>
+            <div class="form-group">
+              <label for="location">
+                <i class="fas fa-map-marker-alt"></i> Location
+              </label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                placeholder="e.g. New York, NY"
+                required
+                autocomplete="off"
+              />
+            </div>
+            <div class="form-group">
+              <label for="source">
+                <i class="fas fa-globe"></i> Data Source
+              </label>
+              <select id="source" name="source">
+                <option value="all">All Sources</option>
+                <option value="google-maps">Google Maps</option>
+                <option value="yellow-pages">Yellow Pages</option>
+                <option value="yelp">Yelp</option>
+                <option value="bbb">BBB</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="startBtn" class="btn btn-primary btn-large">
+              <i class="fas fa-play"></i>
+              <span>Start Scraping</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Progress Section -->
+      <div id="progressSection" class="progress-card hidden">
+        <div class="progress-header">
+          <h2><i class="fas fa-spinner fa-spin"></i> Scraping in Progress</h2>
+          <div class="job-info">
+            <span class="badge badge-info" id="jobIdDisplay"></span>
+          </div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+          <span class="progress-percent" id="progressPercent">0%</span>
+        </div>
+
+        <div class="progress-status">
+          <span id="progressStatus">Initializing...</span>
+        </div>
+
+        <div class="progress-stats">
+          <div class="stat-box">
+            <div class="stat-value" id="statFound">0</div>
+            <div class="stat-label">Found</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="statSaved">0</div>
+            <div class="stat-label">Saved</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="statErrors">0</div>
+            <div class="stat-label">Errors</div>
+          </div>
+        </div>
+
+        <div id="progressErrors" class="error-list hidden"></div>
+      </div>
+
+      <!-- Recent Jobs -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <h3><i class="fas fa-history"></i> Recent Jobs</h3>
+          <button class="btn btn-ghost btn-sm" id="refreshJobsBtn">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="recentJobsList" class="jobs-list">
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No jobs yet. Start your first scraping job above.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leads Section -->
+    <section id="section-leads" class="section hidden">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-users"></i> Leads Database</h2>
+          <div class="card-actions">
+            <button class="btn btn-success btn-sm" onclick="app.exportLeads('csv')">
+              <i class="fas fa-file-csv"></i> CSV
+            </button>
+            <button class="btn btn-success btn-sm" onclick="app.exportLeads('excel')">
+              <i class="fas fa-file-excel"></i> Excel
+            </button>
+            <button class="btn btn-success btn-sm" onclick="app.exportLeads('json')">
+              <i class="fas fa-file-code"></i> JSON
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+          <div class="filter-group">
+            <div class="search-input-wrap">
+              <i class="fas fa-search"></i>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search leads..."
+                class="filter-input"
+              />
+            </div>
+          </div>
+          <div class="filter-group">
+            <select id="filterStatus" class="filter-select">
+              <option value="">All Statuses</option>
+              <option value="new">New</option>
+              <option value="contacted">Contacted</option>
+              <option value="qualified">Qualified</option>
+              <option value="converted">Converted</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <select id="filterSource" class="filter-select">
+              <option value="">All Sources</option>
+              <option value="google-maps">Google Maps</option>
+              <option value="yellow-pages">Yellow Pages</option>
+              <option value="yelp">Yelp</option>
+              <option value="bbb">BBB</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="direct">Direct</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <select id="filterSort" class="filter-select">
+              <option value="scrapedDate">Date Scraped</option>
+              <option value="businessName">Business Name</option>
+              <option value="rating">Rating</option>
+              <option value="reviewCount">Reviews</option>
+            </select>
+          </div>
+          <button class="btn btn-outline btn-sm" id="applyFiltersBtn">
+            <i class="fas fa-filter"></i> Apply
+          </button>
+          <button class="btn btn-ghost btn-sm" id="clearFiltersBtn">
+            <i class="fas fa-times"></i> Clear
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <table id="leadsTable" class="leads-table">
+            <thead>
+              <tr>
+                <th>Business Name</th>
+                <th>Contact</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Location</th>
+                <th>Rating</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTableBody">
+              <tr>
+                <td colspan="9" class="empty-row">
+                  <div class="empty-state">
+                    <i class="fas fa-database"></i>
+                    <p>No leads yet. Start scraping to collect leads.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar" id="paginationBar"></div>
+      </div>
+    </section>
+
+    <!-- Jobs Section -->
+    <section id="section-jobs" class="section hidden">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-tasks"></i> All Jobs</h2>
+          <button class="btn btn-ghost btn-sm" id="refreshAllJobsBtn">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="allJobsList" class="jobs-list">
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No jobs found.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Lead Detail Modal -->
+  <div id="leadModal" class="modal hidden">
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Lead Details</h2>
+        <button class="modal-close" id="modalClose">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Filled by JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="modalCancelBtn">Cancel</button>
+        <button class="btn btn-primary" id="modalSaveBtn">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
