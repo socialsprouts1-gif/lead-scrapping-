@@ -6,6 +6,7 @@ const os = require('os');
 
 const Lead = require('../../models/Lead');
 const { exportToCSV, exportToExcel, exportToJSON } = require('../../utils/exporter');
+const { validateEmail, validatePhone, validateUrl, verifyEmailDomain } = require('../../extractors/dataValidator');
 const logger = require('../../utils/logger');
 
 /**
@@ -161,6 +162,41 @@ router.post('/export', async (req, res) => {
   } catch (err) {
     logger.error('Export error:', err.message);
     return res.status(500).json({ error: 'Failed to export leads' });
+  }
+});
+
+/**
+ * POST /api/leads/verify
+ * Verify one or more leads' data (email, phone, website format)
+ */
+router.post('/verify', async (req, res) => {
+  try {
+    const { ids } = req.body; // array of lead ObjectIds, or omit to verify all
+
+    const filter = ids && Array.isArray(ids) && ids.length > 0 ? { _id: { $in: ids } } : {};
+    const leads = await Lead.find(filter).lean();
+
+    const results = leads.map((lead) => {
+      const checks = {
+        emailValid: lead.email ? validateEmail(lead.email) : null,
+        emailDomainOk: lead.email ? verifyEmailDomain(lead.email) : null,
+        phoneValid: lead.phone ? validatePhone(lead.phone) : null,
+        websiteValid: lead.website ? validateUrl(lead.website) : null,
+      };
+      const passed = Object.values(checks).filter((v) => v === false).length === 0;
+      return { id: lead._id, businessName: lead.businessName, checks, passed };
+    });
+
+    // Mark verified on leads that passed all checks
+    const passedIds = results.filter((r) => r.passed).map((r) => r.id);
+    if (passedIds.length > 0) {
+      await Lead.updateMany({ _id: { $in: passedIds } }, { $set: { verified: true } });
+    }
+
+    return res.json({ verified: passedIds.length, total: leads.length, results });
+  } catch (err) {
+    logger.error('Verify error:', err.message);
+    return res.status(500).json({ error: 'Failed to verify leads' });
   }
 });
 

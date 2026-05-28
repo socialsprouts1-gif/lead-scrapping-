@@ -9,6 +9,8 @@ const logger = require('./src/utils/logger');
 const scrapeRoutes = require('./src/api/routes/scrape');
 const leadsRoutes = require('./src/api/routes/leads');
 const jobsRoutes = require('./src/api/routes/jobs');
+const statsRoutes = require('./src/api/routes/stats');
+const settingsRoutes = require('./src/api/routes/settings');
 const rateLimiter = require('./src/api/middleware/rateLimiter');
 
 const app = express();
@@ -48,6 +50,8 @@ app.use('/api', rateLimiter);
 app.use('/api/scrape', scrapeRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use('/api/jobs', jobsRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // SPA fallback - serve index.html for non-API routes
 app.get('*', (req, res) => {

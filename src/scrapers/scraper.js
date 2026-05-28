@@ -59,7 +59,7 @@ class ScrapingManager {
       logger.info(`Starting job ${jobId}: ${profession} in ${location} via ${source}`);
 
       const sources = source === 'all'
-        ? ['google-maps', 'yellow-pages', 'yelp', 'bbb']
+        ? ['google-maps', 'yellow-pages', 'yelp', 'bbb', 'business-directory', 'linkedin']
         : [source];
 
       let totalFound = 0;
@@ -185,6 +185,14 @@ class ScrapingManager {
       case 'bbb': {
         const { scrapeBBB } = require('./bbb');
         return await scrapeBBB(profession, location, progressCallback);
+      }
+      case 'business-directory': {
+        const { scrapeBusinessDirectory } = require('./businessDirectory');
+        return await scrapeBusinessDirectory(profession, location, progressCallback);
+      }
+      case 'linkedin': {
+        const { scrapeLinkedIn } = require('./linkedIn');
+        return await scrapeLinkedIn(profession, location, progressCallback);
       }
       default:
         throw new Error(`Unknown source: ${source}`);

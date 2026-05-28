@@ -27,6 +27,9 @@
       <a href="#jobs" class="nav-link" data-section="jobs">
         <i class="fas fa-tasks"></i> Jobs
       </a>
+      <a href="#stats" class="nav-link" data-section="stats">
+        <i class="fas fa-chart-bar"></i> Stats
+      </a>
     </div>
     <div class="navbar-stats">
       <span class="badge" id="totalLeadsBadge">
@@ -84,6 +87,8 @@
                 <option value="yellow-pages">Yellow Pages</option>
                 <option value="yelp">Yelp</option>
                 <option value="bbb">BBB</option>
+                <option value="business-directory">Business Directory</option>
+                <option value="linkedin">LinkedIn</option>
               </select>
             </div>
           </div>
@@ -202,6 +207,7 @@
               <option value="yellow-pages">Yellow Pages</option>
               <option value="yelp">Yelp</option>
               <option value="bbb">BBB</option>
+              <option value="business-directory">Business Directory</option>
               <option value="linkedin">LinkedIn</option>
               <option value="direct">Direct</option>
             </select>
@@ -270,6 +276,35 @@
             <div class="empty-state">
               <i class="fas fa-inbox"></i>
               <p>No jobs found.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="section-stats" class="section hidden">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-chart-bar"></i> Statistics</h2>
+          <button class="btn btn-ghost btn-sm" id="refreshStatsBtn">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="card-body" id="statsBody">
+          <div class="stats-grid" id="statsTotals"></div>
+          <div class="stats-row">
+            <div class="stats-col">
+              <h4>By Source</h4>
+              <table class="simple-table" id="statsBySource"><thead><tr><th>Source</th><th>Leads</th></tr></thead><tbody></tbody></table>
+            </div>
+            <div class="stats-col">
+              <h4>By Status</h4>
+              <table class="simple-table" id="statsByStatus"><thead><tr><th>Status</th><th>Leads</th></tr></thead><tbody></tbody></table>
+            </div>
+            <div class="stats-col">
+              <h4>Top Professions</h4>
+              <table class="simple-table" id="statsTopProfessions"><thead><tr><th>Profession</th><th>Leads</th></tr></thead><tbody></tbody></table>
             </div>
           </div>
         </div>

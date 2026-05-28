@@ -55,6 +55,7 @@ class LeadScraperApp {
 
     if (name === 'leads') this.loadLeads();
     if (name === 'jobs') this.loadAllJobs();
+    if (name === 'stats') this.loadStats();
   }
 
   // ============================================================
@@ -666,9 +667,56 @@ class LeadScraperApp {
   bindJobButtons() {
     const refreshBtn = document.getElementById('refreshJobsBtn');
     const refreshAllBtn = document.getElementById('refreshAllJobsBtn');
+    const refreshStatsBtn = document.getElementById('refreshStatsBtn');
 
     if (refreshBtn) refreshBtn.addEventListener('click', () => this.loadRecentJobs());
     if (refreshAllBtn) refreshAllBtn.addEventListener('click', () => this.loadAllJobs());
+    if (refreshStatsBtn) refreshStatsBtn.addEventListener('click', () => this.loadStats());
+  }
+
+  // ============================================================
+  // Stats
+  // ============================================================
+
+  async loadStats() {
+    try {
+      const response = await this.apiRequest('/api/stats');
+      if (!response.ok) return;
+      const data = await response.json();
+      this.renderStats(data);
+    } catch (err) {
+      console.error('Load stats error:', err);
+    }
+  }
+
+  renderStats(data) {
+    const totalsEl = document.getElementById('statsTotals');
+    if (totalsEl) {
+      const t = data.totals || {};
+      totalsEl.innerHTML = [
+        { label: 'Total Leads', value: t.leads || 0 },
+        { label: 'Total Jobs', value: t.jobs || 0 },
+        { label: 'Verified', value: t.verified || 0 },
+        { label: 'Contacted', value: t.contacted || 0 },
+        { label: 'With Email', value: t.withEmail || 0 },
+      ].map((tile) => `
+        <div class="stats-tile">
+          <div class="tile-value">${tile.value.toLocaleString()}</div>
+          <div class="tile-label">${tile.label}</div>
+        </div>`).join('');
+    }
+
+    const renderTable = (tableId, rows, keyA, keyB) => {
+      const tbody = document.querySelector(`#${tableId} tbody`);
+      if (!tbody) return;
+      tbody.innerHTML = rows.length
+        ? rows.map((r) => `<tr><td>${this.escapeHtml(r[keyA])}</td><td>${r[keyB]}</td></tr>`).join('')
+        : '<tr><td colspan="2" style="color:var(--gray-400);text-align:center">No data</td></tr>';
+    };
+
+    renderTable('statsBySource', data.bySource || [], 'source', 'count');
+    renderTable('statsByStatus', data.byStatus || [], 'status', 'count');
+    renderTable('statsTopProfessions', data.topProfessions || [], 'profession', 'count');
   }
 
   async loadRecentJobs() {
@@ -822,6 +870,7 @@ class LeadScraperApp {
       'yellow-pages': 'Yellow Pages',
       'yelp': 'Yelp',
       'bbb': 'BBB',
+      'business-directory': 'Business Directory',
       'linkedin': 'LinkedIn',
       'direct': 'Direct',
       'all': 'All Sources',

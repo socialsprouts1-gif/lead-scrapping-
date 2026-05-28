@@ -104,7 +104,7 @@ function validateScrapeRequest(profession, location, source) {
     errors.push('location must be less than 100 characters');
   }
 
-  const validSources = ['google-maps', 'yellow-pages', 'yelp', 'bbb', 'all'];
+  const validSources = ['google-maps', 'yellow-pages', 'yelp', 'bbb', 'business-directory', 'linkedin', 'all'];
   if (!source) {
     errors.push('source is required');
   } else if (!validSources.includes(source)) {
