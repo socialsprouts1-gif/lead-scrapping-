@@ -43,6 +43,28 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from src/public
 app.use(express.static(path.join(__dirname, 'src/public')));
 
+// Lazy MongoDB connection — works for both serverless and traditional deployments
+let dbConnected = false;
+async function ensureDBConnected() {
+  if (dbConnected || mongoose.connection.readyState === 1) return;
+  try {
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    dbConnected = true;
+    logger.info('Connected to MongoDB');
+  } catch (err) {
+    logger.warn('MongoDB connection failed — API will return errors for DB operations:', err.message);
+  }
+}
+
+// Connect DB before every API request (cached after first success)
+app.use('/api', async (req, res, next) => {
+  await ensureDBConnected();
+  next();
+});
+
 // Apply rate limiter to API routes
 app.use('/api', rateLimiter);
 
@@ -53,7 +75,7 @@ app.use('/api/jobs', jobsRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/settings', settingsRoutes);
 
-// SPA fallback - serve index.html for non-API routes
+// SPA fallback — serve index.html for non-API routes
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(__dirname, 'src/public/index.html'));
@@ -70,54 +92,27 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to MongoDB and start server
-async function startServer() {
-  try {
-    await mongoose.connect(MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    logger.info('Connected to MongoDB');
-
+// Start HTTP server only when running directly (not on Vercel serverless)
+if (!process.env.VERCEL && require.main === module) {
+  ensureDBConnected().then(() => {
     const server = app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
       logger.info(`Dashboard: http://localhost:${PORT}`);
     });
 
-    // Graceful shutdown
     const shutdown = async (signal) => {
       logger.info(`Received ${signal}. Shutting down gracefully...`);
       server.close(async () => {
-        logger.info('HTTP server closed');
         await mongoose.connection.close();
-        logger.info('MongoDB connection closed');
         process.exit(0);
       });
-
-      // Force shutdown after 10 seconds
-      setTimeout(() => {
-        logger.error('Forced shutdown after timeout');
-        process.exit(1);
-      }, 10000);
+      setTimeout(() => process.exit(1), 10000);
     };
 
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
-
-  } catch (err) {
-    logger.error('Failed to connect to MongoDB:', err.message);
-    logger.warn('Starting server without MongoDB (limited functionality)...');
-
-    const server = app.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT} (no database connection)`);
-      logger.info(`Dashboard: http://localhost:${PORT}`);
-    });
-
-    process.on('SIGTERM', () => { server.close(); process.exit(0); });
-    process.on('SIGINT', () => { server.close(); process.exit(0); });
-  }
+  });
 }
 
-startServer();
-
+// Vercel (and tests) use the exported app directly
 module.exports = app;

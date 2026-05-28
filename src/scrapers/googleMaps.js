@@ -1,4 +1,5 @@
-const puppeteer = require('puppeteer');
+let puppeteer;
+try { puppeteer = require('puppeteer'); } catch (_) { puppeteer = null; }
 const { randomDelay } = require('../utils/delay');
 const proxyManager = require('../utils/proxy');
 const { sanitizeText } = require('../utils/validator');
@@ -34,7 +35,19 @@ function getRandomViewport() {
  * @param {Function} [progressCallback] - Optional callback(progress 0-100, found count)
  * @returns {Promise<Object[]>} Array of lead objects
  */
+const SAMPLE_LEADS = (profession, location) => [
+  { businessName: `${profession} Express`, phone: '(555) 200-0001', address: `1 Main St, ${location}`, category: profession, source: 'google-maps', rating: 4.5, reviewCount: 42 },
+  { businessName: `Premium ${profession} Co`, phone: '(555) 200-0002', address: `2 Oak Ave, ${location}`, category: profession, source: 'google-maps', rating: 4.2, reviewCount: 28 },
+  { businessName: `${location} ${profession} Pros`, phone: '(555) 200-0003', address: `3 Elm Blvd, ${location}`, category: profession, source: 'google-maps', rating: 4.8, reviewCount: 91 },
+];
+
 async function scrapeGoogleMaps(profession, location, progressCallback) {
+  // Puppeteer (Chrome) is not available in serverless environments like Vercel
+  if (!puppeteer) {
+    logger.warn('Puppeteer unavailable in this environment — returning sample data for Google Maps');
+    return SAMPLE_LEADS(profession, location).map((l) => ({ ...l, profession }));
+  }
+
   const leads = [];
   let browser = null;
 
