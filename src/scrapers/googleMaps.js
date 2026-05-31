@@ -42,9 +42,10 @@ const SAMPLE_LEADS = (profession, location) => [
 ];
 
 async function scrapeGoogleMaps(profession, location, progressCallback) {
-  // Puppeteer (Chrome) is not available in serverless environments like Vercel
-  if (!puppeteer) {
-    logger.warn('Puppeteer unavailable in this environment — returning sample data for Google Maps');
+  // Chrome is not available on Vercel serverless — return sample data silently
+  if (process.env.VERCEL || !puppeteer) {
+    logger.info('Google Maps: Chrome unavailable on Vercel — using sample data');
+    if (progressCallback) await progressCallback(100, 3);
     return SAMPLE_LEADS(profession, location).map((l) => ({ ...l, profession }));
   }
 

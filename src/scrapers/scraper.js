@@ -58,9 +58,9 @@ class ScrapingManager {
       this.activeWorkers++;
       logger.info(`Starting job ${jobId}: ${profession} in ${location} via ${source}`);
 
-      const sources = source === 'all'
-        ? ['google-maps', 'yellow-pages', 'yelp', 'bbb', 'business-directory', 'linkedin']
-        : [source];
+      // On Vercel, google-maps uses sample data so still include it — but it won't error
+      const allSources = ['google-maps', 'yellow-pages', 'yelp', 'bbb', 'business-directory', 'linkedin'];
+      const sources = source === 'all' ? allSources : [source];
 
       let totalFound = 0;
       let totalSaved = 0;
