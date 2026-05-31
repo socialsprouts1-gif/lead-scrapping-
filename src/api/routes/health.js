@@ -7,7 +7,7 @@ router.get('/', (req, res) => {
   const dbState = ['disconnected', 'connected', 'connecting', 'disconnecting'];
   const dbStatus = dbState[mongoose.connection.readyState] || 'unknown';
   const dbOk = mongoose.connection.readyState === 1;
-  const configured = !!process.env.MONGO_URI;
+  const configured = !!(process.env.MONGO_URI || process.env.mongo_url);
 
   // Get last connection error if any
   let dbError = null;
