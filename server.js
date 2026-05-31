@@ -16,7 +16,7 @@ const rateLimiter = require('./src/api/middleware/rateLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/leads';
+const MONGO_URI = process.env.mongo_url || 'mongodb+srv://leadscrapper:lead@1234@cluster0.jueqlaf.mongodb.net/?appName=Cluster0';
 
 // Security & utility middleware
 app.use(helmet({
