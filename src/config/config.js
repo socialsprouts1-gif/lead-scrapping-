@@ -6,7 +6,7 @@ module.exports = {
     env: process.env.NODE_ENV || 'development',
   },
   db: {
-    uri: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/leads',
+    uri: process.env.MONGO_URI || 'mongodb+srv://leadscrapper:lead%401234@cluster0.jueqlaf.mongodb.net/leads?retryWrites=true&w=majority&appName=Cluster0',
   },
   scraping: {
     delayMin: parseInt(process.env.SCRAPE_DELAY_MIN, 10) || 2000,
