@@ -46,19 +46,26 @@ app.use(express.static(path.join(__dirname, 'src/public')));
 
 // Lazy MongoDB connection — works for both serverless and traditional deployments
 let dbConnected = false;
+let dbError = null;
+
 async function ensureDBConnected() {
   if (dbConnected || mongoose.connection.readyState === 1) return;
   try {
     await mongoose.connect(MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
     });
     dbConnected = true;
+    dbError = null;
     logger.info('Connected to MongoDB');
   } catch (err) {
-    logger.warn('MongoDB connection failed — API will return errors for DB operations:', err.message);
+    dbError = err.message;
+    logger.warn('MongoDB connection failed:', err.message);
   }
 }
+
+// Export dbError so health route can read it
+module.exports.getDbError = () => dbError;
 
 // Connect DB before every API request (cached after first success)
 app.use('/api', async (req, res, next) => {
