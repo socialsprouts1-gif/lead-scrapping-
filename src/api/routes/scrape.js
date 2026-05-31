@@ -1,6 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
+const mongoose = require('mongoose');
 
 const Job = require('../../models/Job');
 const scrapingManager = require('../../scrapers/scraper');
@@ -13,6 +14,15 @@ const logger = require('../../utils/logger');
  */
 router.post('/', async (req, res) => {
   try {
+    // Check DB connection first — gives a clear error instead of a generic 500
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        error: 'Database not connected. Please set MONGO_URI in your Vercel environment variables.',
+        fix: 'Vercel Dashboard → Your Project → Settings → Environment Variables → Add MONGO_URI',
+        docs: 'Get a free MongoDB at https://mongodb.com/cloud/atlas',
+      });
+    }
+
     const { profession, location, source } = req.body;
 
     // Validate inputs
@@ -65,7 +75,7 @@ router.post('/', async (req, res) => {
     });
   } catch (err) {
     logger.error('Error creating scrape job:', err.message);
-    return res.status(500).json({ error: 'Failed to start scraping job' });
+    return res.status(500).json({ error: 'Failed to start scraping job', detail: err.message });
   }
 });
 

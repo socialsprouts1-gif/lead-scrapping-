@@ -11,6 +11,7 @@ const leadsRoutes = require('./src/api/routes/leads');
 const jobsRoutes = require('./src/api/routes/jobs');
 const statsRoutes = require('./src/api/routes/stats');
 const settingsRoutes = require('./src/api/routes/settings');
+const healthRoutes = require('./src/api/routes/health');
 const rateLimiter = require('./src/api/middleware/rateLimiter');
 
 const app = express();
@@ -69,6 +70,7 @@ app.use('/api', async (req, res, next) => {
 app.use('/api', rateLimiter);
 
 // Mount API routes
+app.use('/api/health', healthRoutes);
 app.use('/api/scrape', scrapeRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use('/api/jobs', jobsRoutes);
